@@ -7,12 +7,24 @@ fn main() -> Result<(), std::io::Error> {
     let path = Path::new("out/hello_world.ppm");
     let mut file = File::create(path)?;
 
-    file.write(b"P3\n")?;
-    file.write(b"3 2\n")?;
-    file.write(b"255\n")?;
+    let width = 200;
+    let height = 100;
 
-    file.write(b"255   0   0     0 255   0     0   0 255\n")?;
-    file.write(b"255 255   0   255 255 255     0   0   0\n")?;
+    write!(file, "P3\n{} {}\n255\n", width, height)?;
+
+    for x in (0..height).rev() {
+        for y in 0..width {
+            let r = y as f64 / width as f64;
+            let g = x as f64 / height as f64;
+            let b = 0.2;
+
+            let ir = (255.0 * r) as u8;
+            let ig = (255.0 * g) as u8;
+            let ib = (255.0 * b) as u8;
+
+            write!(file, "{} {} {}\n", ir, ig, ib)?;
+        }
+    }
 
     Ok(())
 }
