@@ -10,13 +10,13 @@ fn main() -> Result<(), std::io::Error> {
     let width = 200;
     let height = 100;
 
-    write!(file, "P3\n{} {}\n255\n", width, height)?;
+    writeln!(file, "P3\n{} {}\n255", width, height)?;
 
     for x in (0..height).rev() {
         for y in 0..width {
             let color = Vector3::new(
-                y as f64 / width as f64,
-                x as f64 / height as f64,
+                f64::from(y) / f64::from(width),
+                f64::from(x) / f64::from(height),
                 0.2
             );
 
@@ -24,7 +24,7 @@ fn main() -> Result<(), std::io::Error> {
             let ig = (255.0 * color.y) as u8;
             let ib = (255.0 * color.z) as u8;
 
-            write!(file, "{} {} {}\n", ir, ig, ib)?;
+            writeln!(file, "{} {} {}", ir, ig, ib)?;
         }
     }
 
