@@ -4,7 +4,7 @@ use std::path::Path;
 
 fn main() -> Result<(), std::io::Error> {
     write_hello_world()?;
-    write_background()?;
+    write_sphere()?;
     Ok(())
 }
 
@@ -36,8 +36,8 @@ fn write_hello_world() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-fn write_background() -> Result<(), std::io::Error> {
-    let path = Path::new("out/background.ppm");
+fn write_sphere() -> Result<(), std::io::Error> {
+    let path = Path::new("out/sphere.ppm");
     let mut file = File::create(path)?;
 
     let width = 200;
@@ -74,9 +74,22 @@ fn write_background() -> Result<(), std::io::Error> {
 }
 
 fn color_for(ray: Ray) -> Vector3 {
+    if hit_sphere(Vector3::new(0.0, 0.0, -1.0), 0.5, ray) {
+        return Vector3::new(1.0, 0.0, 0.0);
+    }
+
     let unit_direction = ray.direction.unit();
     let t = 0.5 * (unit_direction.y + 1.0);
     Vector3::new(1.0, 1.0, 1.0).scale(1.0 - t) + Vector3::new(0.5, 0.7, 1.0).scale(t)
+}
+
+fn hit_sphere(center: Vector3, radius: f64, ray: Ray) -> bool {
+    let oc = ray.origin - center;
+    let a = ray.direction.dot(ray.direction);
+    let b = 2.0 * oc.dot(ray.direction);
+    let c = oc.dot(oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > 0.0
 }
 
 #[derive(Copy, Clone)]
@@ -102,6 +115,10 @@ impl Vector3 {
     fn unit(&self) -> Vector3 {
         self.scale(1.0 / self.magnitude())
     }
+
+    fn dot(&self, other: Vector3) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
 }
 
 impl std::ops::Add<Vector3> for Vector3 {
@@ -109,6 +126,14 @@ impl std::ops::Add<Vector3> for Vector3 {
 
     fn add(self, rhs: Self) -> Self {
         Vector3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+    }
+}
+
+impl std::ops::Sub<Vector3> for Vector3 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        Vector3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
@@ -120,6 +145,7 @@ impl std::ops::Mul<f64> for Vector3 {
     }
 }
 
+#[derive(Copy, Clone)]
 struct Ray {
     origin: Vector3,
     direction: Vector3,
