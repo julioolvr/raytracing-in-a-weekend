@@ -40,8 +40,8 @@ fn write_sphere() -> Result<(), std::io::Error> {
     let path = Path::new("out/sphere.ppm");
     let mut file = File::create(path)?;
 
-    let width = 200;
-    let height = 100;
+    let width = 800;
+    let height = 400;
 
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
@@ -74,22 +74,56 @@ fn write_sphere() -> Result<(), std::io::Error> {
 }
 
 fn color_for(ray: Ray) -> Vector3 {
-    if hit_sphere(Vector3::new(0.0, 0.0, -1.0), 0.5, ray) {
-        return Vector3::new(1.0, 0.0, 0.0);
-    }
+    let sphere_center = Vector3::new(0.0, 0.0, -1.0);
 
-    let unit_direction = ray.direction.unit();
-    let t = 0.5 * (unit_direction.y + 1.0);
-    Vector3::new(1.0, 1.0, 1.0).scale(1.0 - t) + Vector3::new(0.5, 0.7, 1.0).scale(t)
+    match hit_sphere(sphere_center, 0.5, ray) {
+        Some(t) => {
+            // If the ray hits the sphere, then hit_sphere returns at which t that
+            // happens. We calculate the point for the ray at t, subtract from the
+            // center of the sphere and get the unit vector. That unit vector
+            // represents the direction from the center to the surface where the
+            // ray hit the sphere.
+            let normal = (ray.point_at(t) - sphere_center).unit();
+
+            // We then map that vector to the range 0..1 and map (x,y,z) to (r,g,b)
+            Vector3::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0).scale(0.5)
+        }
+        None => {
+            let unit_direction = ray.direction.unit();
+            let t = 0.5 * (unit_direction.y + 1.0);
+            Vector3::new(1.0, 1.0, 1.0).scale(1.0 - t) + Vector3::new(0.5, 0.7, 1.0).scale(t)
+        }
+    }
 }
 
-fn hit_sphere(center: Vector3, radius: f64, ray: Ray) -> bool {
+fn hit_sphere(center: Vector3, radius: f64, ray: Ray) -> Option<f64> {
+    // A ray is a function of the form p(t) = A + B*t, where A is the origin,
+    // B the direction. If we consider t a moment in time, the function results
+    // in how far the ray has traveled in a specific amount of time.
+    //
+    // Onto the sphere - the formula for a sphere with center in the origin
+    // and radius R is x*x + y*y + z*z = R*R. Any point (x, y, z) that satisfies
+    // that equation is on the (surface of the) sphere. With center in C, the
+    // equation changes to (x-cx)^2+(y-cy)^2+(z-cz)^2=R^2.
+    //
+    // To know whether the ray hits the sphere, we need to calculate if there's
+    // a t that yields a point that satisfies that equation. That equation results
+    // in a quadratic formula that's solved below.
+    // If there are two solutions, those are the two t at which the ray enters and
+    // exits the sphere. If there's only one, then the ray touches the sphere on a
+    // single point right at the surface. If there are no solutions, then the ray
+    // does not hit the sphere.
     let oc = ray.origin - center;
     let a = ray.direction.dot(ray.direction);
     let b = 2.0 * oc.dot(ray.direction);
     let c = oc.dot(oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
+
+    if discriminant < 0.0 {
+        None
+    } else {
+        Some((-b - discriminant.sqrt()) / (2.0 * a))
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -154,5 +188,9 @@ struct Ray {
 impl Ray {
     fn new(origin: Vector3, direction: Vector3) -> Ray {
         Ray { origin, direction }
+    }
+
+    fn point_at(&self, t: f64) -> Vector3 {
+        self.origin + self.direction.scale(t)
     }
 }
