@@ -5,8 +5,6 @@ use std::path::Path;
 mod math;
 mod raytracer;
 
-use crate::raytracer::Hitable;
-
 fn main() -> Result<(), std::io::Error> {
     write_hello_world()?;
     write_sphere()?;
@@ -90,7 +88,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-fn color_for(ray: raytracer::Ray, scene: &Vec<Box<dyn raytracer::Hitable>>) -> math::Vector3 {
+fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable) -> math::Vector3 {
     match scene.check_hit(ray, 0.0, std::f64::MAX) {
         Some(hit) => {
             let normal = hit.normal;
