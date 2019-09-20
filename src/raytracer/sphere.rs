@@ -1,44 +1,13 @@
-use crate::math;
-
-#[derive(Copy, Clone)]
-pub struct Ray {
-    origin: math::Vector3,
-    pub direction: math::Vector3,
-}
-
-impl Ray {
-    fn new(origin: math::Vector3, direction: math::Vector3) -> Ray {
-        Ray { origin, direction }
-    }
-
-    fn point_at(&self, t: f64) -> math::Vector3 {
-        self.origin + self.direction.scale(t)
-    }
-}
-
-pub trait Hitable {
-    fn check_hit(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<Hit>;
-}
-
-pub struct Hit {
-    t: f64,
-    p: math::Vector3,
-    pub normal: math::Vector3,
-}
-
-impl Hit {
-    fn new(t: f64, p: math::Vector3, normal: math::Vector3) -> Hit {
-        Hit { t, p, normal }
-    }
-}
+use crate::math::Vector3;
+use crate::raytracer::{Ray, Hit, Hitable};
 
 pub struct Sphere {
-    center: math::Vector3,
+    center: Vector3,
     radius: f64,
 }
 
 impl Sphere {
-    pub fn new(center: math::Vector3, radius: f64) -> Sphere {
+    pub fn new(center: Vector3, radius: f64) -> Sphere {
         Sphere { center, radius }
     }
 }
@@ -84,44 +53,5 @@ impl Hitable for Sphere {
         } else {
             None
         }
-    }
-}
-
-impl Hitable for Vec<Box<dyn Hitable>> {
-    fn check_hit(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<Hit> {
-        let mut closest_hit: Option<Hit> = None;
-
-        for hitable in self {
-            let limit = match &closest_hit {
-                Some(hit) => hit.t,
-                None => t_max
-            };
-
-            if let Some(hit) = hitable.check_hit(ray, t_min, limit) {
-                closest_hit = Some(hit);
-            }
-        }
-
-        closest_hit
-    }
-}
-
-pub struct Camera {
-    lower_left_corner: math::Vector3,
-    horizontal: math::Vector3,
-    vertical: math::Vector3,
-    origin: math::Vector3
-}
-
-impl Camera {
-    pub fn new(lower_left_corner: math::Vector3, horizontal: math::Vector3, vertical: math::Vector3, origin: math::Vector3) -> Camera {
-        Camera { lower_left_corner, horizontal, vertical, origin }
-    }
-
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
-        Ray::new(
-            self.origin,
-            self.lower_left_corner + self.horizontal.scale(u) + self.vertical.scale(v)
-        )
     }
 }
