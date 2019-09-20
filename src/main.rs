@@ -37,18 +37,21 @@ fn write_hello_world() -> Result<(), std::io::Error> {
 }
 
 fn write_sphere() -> Result<(), std::io::Error> {
-    let path = Path::new("out/sphere.ppm");
+    let path = Path::new("out/sphere_antialiased.ppm");
     let mut file = File::create(path)?;
 
-    let width = 800;
-    let height = 400;
+    let width = 200;
+    let height = 100;
+    let samples = 100;
 
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
-    let lower_left_corner = Vector3::new(-2.0, -1.0, -1.0);
-    let horizontal = Vector3::new(4.0, 0.0, 0.0);
-    let vertical = Vector3::new(0.0, 2.0, 0.0);
-    let origin = Vector3::new(0.0, 0.0, 0.0);
+    let camera = Camera::new(
+        Vector3::new(-2.0, -1.0, -1.0),
+        Vector3::new(4.0, 0.0, 0.0),
+        Vector3::new(0.0, 2.0, 0.0),
+        Vector3::new(0.0, 0.0, 0.0)
+    );
 
     let scene: Vec<Box<dyn Hitable>> = vec![
         Box::new(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5)),
@@ -57,15 +60,19 @@ fn write_sphere() -> Result<(), std::io::Error> {
 
     for x in (0..height).rev() {
         for y in 0..width {
-            let u = f64::from(y) / f64::from(width);
-            let v = f64::from(x) / f64::from(height);
+            let mut color = Vector3::new(0.0, 0.0, 0.0);
 
-            let ray = Ray::new(
-                origin,
-                lower_left_corner + horizontal.scale(u) + vertical.scale(v)
-            );
+            for _ in 0..samples {
+                // x: 8, y: 12
+                let u = (f64::from(y) + rand::random::<f64>()) / f64::from(width);
+                let v = (f64::from(x) + rand::random::<f64>()) / f64::from(height);
 
-            let color = color_for(ray, &scene);
+                let ray = camera.get_ray(u, v);
+
+                color = color + color_for(ray, &scene);
+            }
+
+            color = color.scale(1.0 / f64::from(samples));
 
             let ir = (255.0 * color.x) as u8;
             let ig = (255.0 * color.y) as u8;
@@ -81,14 +88,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
 fn color_for(ray: Ray, scene: &Vec<Box<dyn Hitable>>) -> Vector3 {
     match scene.check_hit(ray, 0.0, std::f64::MAX) {
         Some(hit) => {
-            // If the ray hits the sphere, then hit_sphere returns at which t that
-            // happens. We calculate the point for the ray at t, subtract from the
-            // center of the sphere and get the unit vector. That unit vector
-            // represents the direction from the center to the surface where the
-            // ray hit the sphere.
             let normal = hit.normal;
-
-            // We then map that vector to the range 0..1 and map (x,y,z) to (r,g,b)
             Vector3::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0).scale(0.5)
         }
         None => {
@@ -226,7 +226,7 @@ impl Hitable for Sphere {
         let t = (-b - discriminant.sqrt()) / (2.0 * a);
 
         if t >= t_min && t <= t_max {
-            // If the ray hits the sphere, then hit_sphere returns at which t that
+            // If the ray hits the sphere, then t represents at which t that
             // happens. We calculate the point for the ray at t, subtract from the
             // center of the sphere and get the unit vector. That unit vector
             // represents the direction from the center to the surface where the
@@ -255,5 +255,25 @@ impl Hitable for Vec<Box<dyn Hitable>> {
         }
 
         closest_hit
+    }
+}
+
+struct Camera {
+    lower_left_corner: Vector3,
+    horizontal: Vector3,
+    vertical: Vector3,
+    origin: Vector3
+}
+
+impl Camera {
+    fn new(lower_left_corner: Vector3, horizontal: Vector3, vertical: Vector3, origin: Vector3) -> Camera {
+        Camera { lower_left_corner, horizontal, vertical, origin }
+    }
+
+    fn get_ray(&self, u: f64, v: f64) -> Ray {
+        Ray::new(
+            self.origin,
+            self.lower_left_corner + self.horizontal.scale(u) + self.vertical.scale(v)
+        )
     }
 }
