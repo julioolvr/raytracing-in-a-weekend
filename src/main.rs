@@ -50,7 +50,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
     let vertical = Vector3::new(0.0, 2.0, 0.0);
     let origin = Vector3::new(0.0, 0.0, 0.0);
 
-    let scene = vec![
+    let scene: Vec<Box<dyn Hitable>> = vec![
         Box::new(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5)),
         Box::new(Sphere::new(Vector3::new(0.0, -100.5, -1.0), 100.0)),
     ];
@@ -78,7 +78,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-fn color_for(ray: Ray, scene: &Vec<Box<Sphere>>) -> Vector3 {
+fn color_for(ray: Ray, scene: &Vec<Box<dyn Hitable>>) -> Vector3 {
     match scene.check_hit(ray, 0.0, std::f64::MAX) {
         Some(hit) => {
             // If the ray hits the sphere, then hit_sphere returns at which t that
@@ -239,7 +239,7 @@ impl Hitable for Sphere {
     }
 }
 
-impl Hitable for Vec<Box<Sphere>> {
+impl Hitable for Vec<Box<dyn Hitable>> {
     fn check_hit(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         let mut closest_hit: Option<Hit> = None;
 
