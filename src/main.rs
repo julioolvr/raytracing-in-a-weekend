@@ -40,12 +40,12 @@ fn write_hello_world() -> Result<(), std::io::Error> {
 }
 
 fn write_sphere() -> Result<(), std::io::Error> {
-    let path = Path::new("out/sphere_antialiased.ppm");
+    let path = Path::new("out/sphere_matte.ppm");
     let mut file = File::create(path)?;
 
-    let width = 200;
-    let height = 100;
-    let samples = 100;
+    let width = 800;
+    let height = 400;
+    let samples = 5;
 
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
@@ -53,12 +53,18 @@ fn write_sphere() -> Result<(), std::io::Error> {
         math::Vector3::new(-2.0, -1.0, -1.0),
         math::Vector3::new(4.0, 0.0, 0.0),
         math::Vector3::new(0.0, 2.0, 0.0),
-        math::Vector3::new(0.0, 0.0, 0.0)
+        math::Vector3::new(0.0, 0.0, 0.0),
     );
 
     let scene: Vec<Box<dyn raytracer::Hitable>> = vec![
-        Box::new(raytracer::Sphere::new(math::Vector3::new(0.0, 0.0, -1.0), 0.5)),
-        Box::new(raytracer::Sphere::new(math::Vector3::new(0.0, -100.5, -1.0), 100.0)),
+        Box::new(raytracer::Sphere::new(
+            math::Vector3::new(0.0, 0.0, -1.0),
+            0.5,
+        )),
+        Box::new(raytracer::Sphere::new(
+            math::Vector3::new(0.0, -100.5, -1.0),
+            100.0,
+        )),
     ];
 
     for x in (0..height).rev() {
@@ -91,13 +97,25 @@ fn write_sphere() -> Result<(), std::io::Error> {
 fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable) -> math::Vector3 {
     match scene.check_hit(ray, 0.0, std::f64::MAX) {
         Some(hit) => {
-            let normal = hit.normal;
-            math::Vector3::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0).scale(0.5)
+            let target = hit.p + hit.normal + random_in_unit_sphere();
+            color_for(raytracer::Ray::new(hit.p, target - hit.p), scene).scale(0.5)
         }
         None => {
             let unit_direction = ray.direction.unit();
             let t = 0.5 * (unit_direction.y + 1.0);
-            math::Vector3::new(1.0, 1.0, 1.0).scale(1.0 - t) + math::Vector3::new(0.5, 0.7, 1.0).scale(t)
+            math::Vector3::new(1.0, 1.0, 1.0).scale(1.0 - t)
+                + math::Vector3::new(0.5, 0.7, 1.0).scale(t)
+        }
+    }
+}
+
+fn random_in_unit_sphere() -> math::Vector3 {
+    loop {
+        let p = math::Vector3::new(rand::random(), rand::random(), rand::random()).scale(2.0)
+            - math::Vector3::new(1.0, 1.0, 1.0);
+
+        if p.squared_length() <= 1.0 {
+            return p;
         }
     }
 }

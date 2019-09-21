@@ -3,7 +3,7 @@ use crate::raytracer::Ray;
 
 pub struct Hit {
     t: f64,
-    p: Vector3,
+    pub p: Vector3,
     pub normal: Vector3,
 }
 
