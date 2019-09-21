@@ -72,7 +72,6 @@ fn write_sphere() -> Result<(), std::io::Error> {
             let mut color = math::Vector3::new(0.0, 0.0, 0.0);
 
             for _ in 0..samples {
-                // x: 8, y: 12
                 let u = (f64::from(y) + rand::random::<f64>()) / f64::from(width);
                 let v = (f64::from(x) + rand::random::<f64>()) / f64::from(height);
 
@@ -83,9 +82,9 @@ fn write_sphere() -> Result<(), std::io::Error> {
 
             color = color.scale(1.0 / f64::from(samples));
 
-            let ir = (255.0 * color.x) as u8;
-            let ig = (255.0 * color.y) as u8;
-            let ib = (255.0 * color.z) as u8;
+            let ir = (255.0 * color.x.sqrt()) as u8;
+            let ig = (255.0 * color.y.sqrt()) as u8;
+            let ib = (255.0 * color.z.sqrt()) as u8;
 
             writeln!(file, "{} {} {}", ir, ig, ib)?;
         }
