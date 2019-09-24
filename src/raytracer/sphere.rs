@@ -1,14 +1,15 @@
 use crate::math::Vector3;
-use crate::raytracer::{Ray, Hit, Hitable};
+use crate::raytracer::{Ray, Hit, Hitable, Material};
 
 pub struct Sphere {
     center: Vector3,
     radius: f64,
+    material: Box<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f64) -> Sphere {
-        Sphere { center, radius }
+    pub fn new(center: Vector3, radius: f64, material: Box<dyn Material>) -> Sphere {
+        Sphere { center, radius, material }
     }
 }
 
@@ -49,7 +50,7 @@ impl Hitable for Sphere {
             // represents the direction from the center to the surface where the
             // ray hit the sphere.
             let normal = (ray.point_at(t) - self.center).unit();
-            Some(Hit::new(t, ray.point_at(t), normal))
+            Some(Hit::new(t, ray.point_at(t), normal, &(*self.material)))
         } else {
             None
         }

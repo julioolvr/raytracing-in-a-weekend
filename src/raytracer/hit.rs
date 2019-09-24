@@ -1,15 +1,16 @@
 use crate::math::Vector3;
-use crate::raytracer::Ray;
+use crate::raytracer::{Ray, Material};
 
-pub struct Hit {
+pub struct Hit<'a> {
     t: f64,
     pub p: Vector3,
     pub normal: Vector3,
+    pub material: &'a dyn Material,
 }
 
-impl Hit {
-    pub fn new(t: f64, p: Vector3, normal: Vector3) -> Hit {
-        Hit { t, p, normal }
+impl<'a> Hit<'a> {
+    pub fn new(t: f64, p: Vector3, normal: Vector3, material: &'a dyn Material) -> Hit {
+        Hit { t, p, normal, material }
     }
 }
 

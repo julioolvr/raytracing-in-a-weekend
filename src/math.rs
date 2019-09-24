@@ -54,3 +54,12 @@ impl std::ops::Mul<f64> for Vector3 {
         Vector3::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
+
+impl std::ops::Mul<Vector3> for Vector3 {
+    type Output = Self;
+
+    fn mul(self, rhs: Vector3) -> Self {
+        // This is weird
+        Vector3::new(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
+    }
+}
