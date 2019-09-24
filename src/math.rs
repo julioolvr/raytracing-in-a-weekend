@@ -55,6 +55,14 @@ impl std::ops::Mul<f64> for Vector3 {
     }
 }
 
+impl std::ops::Mul<Vector3> for f64 {
+    type Output = Vector3;
+
+    fn mul(self, rhs: Vector3) -> Vector3 {
+        Vector3::new(self * rhs.x, self * rhs.y, self * rhs.z)
+    }
+}
+
 impl std::ops::Mul<Vector3> for Vector3 {
     type Output = Self;
 

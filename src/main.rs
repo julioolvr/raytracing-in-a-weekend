@@ -31,12 +31,27 @@ fn write_sphere() -> Result<(), std::io::Error> {
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::Lambertian::new(math::Vector3::new(0.8, 0.3, 0.3)))
+            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.8, 0.3, 0.3)))
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.0, -100.5, -1.0),
             100.0,
-            Box::new(raytracer::Lambertian::new(math::Vector3::new(0.8, 0.6, 0.2)))
+            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.8, 0.8, 0.0)))
+        )),
+        Box::new(raytracer::Sphere::new(
+            math::Vector3::new(1.0, 0.0, -1.0),
+            0.5,
+            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.6, 0.2)))
+        )),
+        Box::new(raytracer::Sphere::new(
+            math::Vector3::new(-1.0, 0.0, -1.0),
+            0.5,
+            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.8, 0.8)))
+        )),
+        Box::new(raytracer::Sphere::new(
+            math::Vector3::new(0.5, 0.0, 1.0),
+            1.0,
+            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.2, 0.8, 0.3)))
         )),
     ];
 
@@ -73,8 +88,11 @@ fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable, depth: usize) 
                 return math::Vector3::new(0.0, 0.0, 0.0)
             }
 
-            let scattered_hit = hit.material.scatter(&hit);
-            color_for(scattered_hit.ray, scene, depth + 1) * scattered_hit.attenuation
+            if let Some(scattered_hit) = hit.material.scatter(&hit, &ray) {
+                color_for(scattered_hit.ray, scene, depth + 1) * scattered_hit.attenuation
+            } else {
+                math::Vector3::new(0.0, 0.0, 0.0)
+            }
         }
         None => {
             let unit_direction = ray.direction.unit();
