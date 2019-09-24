@@ -6,36 +6,7 @@ mod math;
 mod raytracer;
 
 fn main() -> Result<(), std::io::Error> {
-    write_hello_world()?;
     write_sphere()?;
-    Ok(())
-}
-
-fn write_hello_world() -> Result<(), std::io::Error> {
-    let path = Path::new("out/hello_world.ppm");
-    let mut file = File::create(path)?;
-
-    let width = 200;
-    let height = 100;
-
-    writeln!(file, "P3\n{} {}\n255", width, height)?;
-
-    for x in (0..height).rev() {
-        for y in 0..width {
-            let color = math::Vector3::new(
-                f64::from(y) / f64::from(width),
-                f64::from(x) / f64::from(height),
-                0.2,
-            );
-
-            let ir = (255.0 * color.x) as u8;
-            let ig = (255.0 * color.y) as u8;
-            let ib = (255.0 * color.z) as u8;
-
-            writeln!(file, "{} {} {}", ir, ig, ib)?;
-        }
-    }
-
     Ok(())
 }
 
