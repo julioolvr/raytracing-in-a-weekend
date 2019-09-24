@@ -14,9 +14,9 @@ fn write_sphere() -> Result<(), std::io::Error> {
     let path = Path::new("out/sphere_metal.ppm");
     let mut file = File::create(path)?;
 
-    let width = 800;
-    let height = 400;
-    let samples = 5;
+    let width = 400;
+    let height = 200;
+    let samples = 100;
 
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
@@ -41,12 +41,12 @@ fn write_sphere() -> Result<(), std::io::Error> {
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(1.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.6, 0.2)))
+            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.6, 0.2), 0.5))
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(-1.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.8, 0.8)))
+            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.8, 0.8), 0.1))
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.5, 0.0, 1.0),

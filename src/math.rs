@@ -71,3 +71,14 @@ impl std::ops::Mul<Vector3> for Vector3 {
         Vector3::new(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
     }
 }
+
+pub fn random_in_unit_sphere() -> Vector3 {
+    loop {
+        let p = Vector3::new(rand::random(), rand::random(), rand::random()).scale(2.0)
+            - Vector3::new(1.0, 1.0, 1.0);
+
+        if p.squared_length() <= 1.0 {
+            return p;
+        }
+    }
+}
