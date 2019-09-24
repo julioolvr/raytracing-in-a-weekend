@@ -1,20 +1,6 @@
-use crate::raytracer::{Ray, Hit};
+use crate::raytracer::{Ray, Hit, Material};
+use crate::raytracer::material::ScatteredHit;
 use crate::math::Vector3;
-
-pub struct ScatteredHit {
-    pub ray: Ray,
-    pub attenuation: Vector3,
-}
-
-impl ScatteredHit {
-    fn new(ray: Ray, attenuation: Vector3) -> ScatteredHit {
-        ScatteredHit { ray, attenuation }
-    }
-}
-
-pub trait Material {
-    fn scatter(&self, hit: &Hit) -> ScatteredHit;
-}
 
 pub struct Lambertian {
     albedo: Vector3,
