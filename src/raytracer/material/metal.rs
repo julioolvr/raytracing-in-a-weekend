@@ -1,6 +1,6 @@
 use crate::raytracer::{Ray, Hit, Material};
 use crate::raytracer::material::ScatteredHit;
-use crate::math::{Vector3, random_in_unit_sphere};
+use crate::math::{Vector3, random_in_unit_sphere, reflect};
 
 pub struct Metal {
     albedo: Vector3,
@@ -32,8 +32,4 @@ impl Material for Metal {
             None
         }
     }
-}
-
-fn reflect(vec_in: Vector3, normal: Vector3) -> Vector3 {
-    vec_in - 2.0 * vec_in.dot(normal) * normal
 }

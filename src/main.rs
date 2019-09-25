@@ -11,11 +11,11 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn write_sphere() -> Result<(), std::io::Error> {
-    let path = Path::new("out/sphere_metal.ppm");
+    let path = Path::new("out/sphere_dielectric.ppm");
     let mut file = File::create(path)?;
 
-    let width = 400;
-    let height = 200;
+    let width = 500;
+    let height = 250;
     let samples = 100;
 
     writeln!(file, "P3\n{} {}\n255", width, height)?;
@@ -31,7 +31,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.8, 0.3, 0.3)))
+            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.1, 0.2, 0.5)))
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.0, -100.5, -1.0),
@@ -46,7 +46,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(-1.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.8, 0.8), 0.1))
+            Box::new(raytracer::material::Dielectric::glass())
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.5, 0.0, 1.0),
@@ -82,7 +82,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
 }
 
 fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable, depth: usize) -> math::Vector3 {
-    match scene.check_hit(ray, 0.0, std::f64::MAX) {
+    match scene.check_hit(ray, 0.0001, std::f64::MAX) {
         Some(hit) => {
             if depth >= 50 {
                 return math::Vector3::new(0.0, 0.0, 0.0)

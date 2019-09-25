@@ -3,9 +3,11 @@ use crate::math::Vector3;
 
 mod lambertian;
 mod metal;
+mod dielectric;
 
 pub use lambertian::Lambertian;
 pub use metal::Metal;
+pub use dielectric::Dielectric;
 
 pub struct ScatteredHit {
     pub ray: Ray,

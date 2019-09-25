@@ -72,6 +72,14 @@ impl std::ops::Mul<Vector3> for Vector3 {
     }
 }
 
+impl std::ops::Neg for Vector3 {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Vector3::new(-self.x, -self.y, -self.z)
+    }
+}
+
 pub fn random_in_unit_sphere() -> Vector3 {
     loop {
         let p = Vector3::new(rand::random(), rand::random(), rand::random()).scale(2.0)
@@ -81,4 +89,8 @@ pub fn random_in_unit_sphere() -> Vector3 {
             return p;
         }
     }
+}
+
+pub fn reflect(vec_in: Vector3, normal: Vector3) -> Vector3 {
+    vec_in - 2.0 * vec_in.dot(normal) * normal
 }
