@@ -48,11 +48,6 @@ fn write_sphere() -> Result<(), std::io::Error> {
             0.5,
             Box::new(raytracer::material::Dielectric::glass())
         )),
-        Box::new(raytracer::Sphere::new(
-            math::Vector3::new(0.5, 0.0, 1.0),
-            1.0,
-            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.2, 0.8, 0.3)))
-        )),
     ];
 
     for x in (0..height).rev() {

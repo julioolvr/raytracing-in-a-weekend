@@ -1,6 +1,6 @@
 use crate::raytracer::{Ray, Hit, Material};
 use crate::raytracer::material::ScatteredHit;
-use crate::math::{Vector3};
+use crate::math::{Vector3, reflect};
 
 pub struct Dielectric {
     refraction_index: f64,
@@ -28,11 +28,12 @@ impl Material for Dielectric {
     fn scatter(&self, hit: &Hit, ray: &Ray) -> Option<ScatteredHit> {
         let attenuation = Vector3::new(1.0, 1.0, 1.0);
 
-        // No reflection yet! Either there's a single refracted ray, or nothing.
+        // `refract` includes a calculation that will refract with some probability, leaving
+        // us to `reflect` if the probability said it didn't refract the ray
         if let Some(refracted) = refract(ray.direction, hit.normal, self.refraction_index) {
             Some(ScatteredHit::new(Ray::new(hit.p, refracted), attenuation))
         } else {
-            None
+            Some(ScatteredHit::new(Ray::new(hit.p, reflect(ray.direction.unit(), hit.normal)), attenuation))
         }
     }
 }
@@ -63,6 +64,14 @@ fn refract(incident: Vector3, normal: Vector3, refraction_index: f64) -> Option<
     // normal will be pointing *inside* of the plane hit by the ray, so we need to turn it around:
     let mut normal = normal;
 
+    // Calculate the cosine of the angle between the incident ray and the normal to use in
+    // Schlick's approximation later
+    let cosine = if dot < 0.0 {
+        (-normal).dot(unit).acos()
+    } else {
+        normal.dot(unit).acos()
+    };
+
     if dot > 0.0 {
         normal = -normal;
         // And now that the normal was reversed, the dot product should be recalculated... but it will
@@ -77,9 +86,21 @@ fn refract(incident: Vector3, normal: Vector3, refraction_index: f64) -> Option<
     // If c2 is negative, then there will be no real solution to the equation. In physical terms,
     // this means that there's *total internal reflection* - or in other words, no refraction (and
     // no refracted ray).
-    if c2 > 0.0 {
+    // schlick gives us the probability of the ray being reflected. If the probability is 0.8,
+    // then we have a 20% chance of getting a number higher than that by calling rand::random().
+    // So if our random number is higher than the chances of reflecting, we refract, otherwise
+    // we reflect.
+    if c2 > 0.0 && schlick(cosine, refraction_index) < rand::random() {
         Some(refraction_index_ratio * unit + normal * (refraction_index_ratio * dot - c2))
     } else {
         None
     }
+}
+
+// Schlick's approximation for the reflection of a ray at angle `cosine` over a surface with the
+// given `refraction_index`.
+fn schlick(cosine: f64, refraction_index: f64) -> f64 {
+    let r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+    let r0 = r0 * r0;
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }
