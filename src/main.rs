@@ -11,7 +11,7 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn write_sphere() -> Result<(), std::io::Error> {
-    let path = Path::new("out/sphere_dielectric.ppm");
+    let path = Path::new("out/sphere_camera.ppm");
     let mut file = File::create(path)?;
 
     let width = 500;
@@ -21,10 +21,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
     let camera = raytracer::Camera::new(
-        math::Vector3::new(-2.0, -1.0, -1.0),
-        math::Vector3::new(4.0, 0.0, 0.0),
-        math::Vector3::new(0.0, 2.0, 0.0),
-        math::Vector3::new(0.0, 0.0, 0.0),
+        90.0, f64::from(width) / f64::from(height)
     );
 
     let scene: Vec<Box<dyn raytracer::Hitable>> = vec![
