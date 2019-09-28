@@ -21,7 +21,11 @@ fn write_sphere() -> Result<(), std::io::Error> {
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
     let camera = raytracer::Camera::new(
-        90.0, f64::from(width) / f64::from(height)
+        math::Vector3::new(-2.0, 2.0, 1.0),
+        math::Vector3::new(0.0, 0.0, -1.0),
+        math::Vector3::new(0.0, 1.0, 0.0),
+        30.0,
+        f64::from(width) / f64::from(height),
     );
 
     let scene: Vec<Box<dyn raytracer::Hitable>> = vec![
@@ -60,7 +64,7 @@ fn write_sphere() -> Result<(), std::io::Error> {
                 color = color + color_for(ray, &scene, 0);
             }
 
-            color = color.scale(1.0 / f64::from(samples));
+            color = color * (1.0 / f64::from(samples));
 
             let ir = (255.0 * color.x.sqrt()) as u8;
             let ig = (255.0 * color.y.sqrt()) as u8;
@@ -89,8 +93,8 @@ fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable, depth: usize) 
         None => {
             let unit_direction = ray.direction.unit();
             let t = 0.5 * (unit_direction.y + 1.0);
-            math::Vector3::new(1.0, 1.0, 1.0).scale(1.0 - t)
-                + math::Vector3::new(0.5, 0.7, 1.0).scale(t)
+            math::Vector3::new(1.0, 1.0, 1.0) * (1.0 - t)
+                + math::Vector3::new(0.5, 0.7, 1.0) * t
         }
     }
 }

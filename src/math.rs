@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,
@@ -10,12 +10,8 @@ impl Vector3 {
         Vector3 { x, y, z }
     }
 
-    pub fn scale(&self, factor: f64) -> Vector3 {
-        Vector3::new(self.x * factor, self.y * factor, self.z * factor)
-    }
-
     pub fn unit(&self) -> Vector3 {
-        self.scale(1.0 / self.magnitude())
+        *self * (1.0 / self.magnitude())
     }
 
     pub fn dot(&self, other: Vector3) -> f64 {
@@ -24,6 +20,14 @@ impl Vector3 {
 
     pub fn squared_length(&self) -> f64 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
+    }
+
+    pub fn cross(&self, other: Vector3) -> Vector3 {
+        Vector3::new(
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x,
+        )
     }
 
     fn magnitude(&self) -> f64 {
@@ -82,7 +86,7 @@ impl std::ops::Neg for Vector3 {
 
 pub fn random_in_unit_sphere() -> Vector3 {
     loop {
-        let p = Vector3::new(rand::random(), rand::random(), rand::random()).scale(2.0)
+        let p = Vector3::new(rand::random(), rand::random(), rand::random()) * 2.0
             - Vector3::new(1.0, 1.0, 1.0);
 
         if p.squared_length() <= 1.0 {

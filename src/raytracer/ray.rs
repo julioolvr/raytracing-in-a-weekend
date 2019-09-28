@@ -12,6 +12,6 @@ impl Ray {
     }
 
     pub fn point_at(&self, t: f64) -> Vector3 {
-        self.origin + self.direction.scale(t)
+        self.origin + self.direction * t
     }
 }
