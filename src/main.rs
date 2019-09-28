@@ -11,7 +11,7 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn write_sphere() -> Result<(), std::io::Error> {
-    let path = Path::new("out/sphere_dielectric_improvement.ppm");
+    let path = Path::new("out/sphere_blur.ppm");
     let mut file = File::create(path)?;
 
     let width = 500;
@@ -20,34 +20,46 @@ fn write_sphere() -> Result<(), std::io::Error> {
 
     writeln!(file, "P3\n{} {}\n255", width, height)?;
 
+    let look_from = math::Vector3::new(3.0, 3.0, 1.0);
+    let look_at = math::Vector3::new(0.0, 0.0, -1.0);
+
     let camera = raytracer::Camera::new(
-        math::Vector3::new(-2.0, 2.0, 1.0),
-        math::Vector3::new(0.0, 0.0, -1.0),
+        look_from,
+        look_at,
         math::Vector3::new(0.0, 1.0, 0.0),
-        30.0,
+        20.0,
         f64::from(width) / f64::from(height),
+        1.1,
+        (look_from - look_at).magnitude(),
     );
 
     let scene: Vec<Box<dyn raytracer::Hitable>> = vec![
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.1, 0.2, 0.5)))
+            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(
+                0.1, 0.2, 0.5,
+            ))),
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(0.0, -100.5, -1.0),
             100.0,
-            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(0.8, 0.8, 0.0)))
+            Box::new(raytracer::material::Lambertian::new(math::Vector3::new(
+                0.8, 0.8, 0.0,
+            ))),
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(1.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Metal::new(math::Vector3::new(0.8, 0.6, 0.2), 0.5))
+            Box::new(raytracer::material::Metal::new(
+                math::Vector3::new(0.8, 0.6, 0.2),
+                0.5,
+            )),
         )),
         Box::new(raytracer::Sphere::new(
             math::Vector3::new(-1.0, 0.0, -1.0),
             0.5,
-            Box::new(raytracer::material::Dielectric::glass())
+            Box::new(raytracer::material::Dielectric::glass()),
         )),
     ];
 
@@ -81,7 +93,7 @@ fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable, depth: usize) 
     match scene.check_hit(ray, 0.0001, std::f64::MAX) {
         Some(hit) => {
             if depth >= 50 {
-                return math::Vector3::new(0.0, 0.0, 0.0)
+                return math::Vector3::new(0.0, 0.0, 0.0);
             }
 
             if let Some(scattered_hit) = hit.material.scatter(&hit, &ray) {
@@ -93,8 +105,7 @@ fn color_for(ray: raytracer::Ray, scene: &dyn raytracer::Hitable, depth: usize) 
         None => {
             let unit_direction = ray.direction.unit();
             let t = 0.5 * (unit_direction.y + 1.0);
-            math::Vector3::new(1.0, 1.0, 1.0) * (1.0 - t)
-                + math::Vector3::new(0.5, 0.7, 1.0) * t
+            math::Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + math::Vector3::new(0.5, 0.7, 1.0) * t
         }
     }
 }

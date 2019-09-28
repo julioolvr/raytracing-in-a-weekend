@@ -30,7 +30,7 @@ impl Vector3 {
         )
     }
 
-    fn magnitude(&self) -> f64 {
+    pub fn magnitude(&self) -> f64 {
         self.squared_length().sqrt()
     }
 }
