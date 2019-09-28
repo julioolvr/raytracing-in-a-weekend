@@ -55,7 +55,7 @@ fn refract(incident: Vector3, normal: Vector3, refraction_index: f64) -> Option<
     // then the ray is entering the material. If it's positive, it's exiting.
     // In this design, the direction vector of a ray is not ensured to be a unit vector, so...
     let unit = incident.unit();
-    let mut dot = unit.dot(normal);
+    let dot = unit.dot(normal);
     let refraction_index_ratio = if dot > 0.0 { refraction_index } else { 1.0 / refraction_index };
 
     // Likewise, all the equations assume the normal points *away* from the plane the incident ray
@@ -64,24 +64,17 @@ fn refract(incident: Vector3, normal: Vector3, refraction_index: f64) -> Option<
     // normal will be pointing *inside* of the plane hit by the ray, so we need to turn it around:
     let mut normal = normal;
 
-    // Calculate the cosine of the angle between the incident ray and the normal to use in
-    // Schlick's approximation later
-    let cosine = if dot < 0.0 {
-        (-normal).dot(unit).acos()
-    } else {
-        normal.dot(unit).acos()
-    };
-
     if dot > 0.0 {
         normal = -normal;
-        // And now that the normal was reversed, the dot product should be recalculated... but it will
-        // be the same thing, just opposite sign, so we do that.
-        dot = -dot;
     }
+
+    // Calculate the cosine of the angle between the incident ray and the normal to use in
+    // Schlick's approximation later
+    let cosine = (-normal).dot(unit);
 
     // For the equation on the explanation above we have n (refraction_index_ratio) and c1 (the dot
     // product). So we need c2, which doesn't have a great meaning as far as I can tell:
-    let c2 = 1.0 - refraction_index_ratio.powi(2) * (1.0 - dot.powi(2));
+    let c2 = 1.0 - refraction_index_ratio.powi(2) * (1.0 - cosine.powi(2));
 
     // If c2 is negative, then there will be no real solution to the equation. In physical terms,
     // this means that there's *total internal reflection* - or in other words, no refraction (and
@@ -91,7 +84,7 @@ fn refract(incident: Vector3, normal: Vector3, refraction_index: f64) -> Option<
     // So if our random number is higher than the chances of reflecting, we refract, otherwise
     // we reflect.
     if c2 > 0.0 && schlick(cosine, refraction_index) < rand::random() {
-        Some(refraction_index_ratio * unit + normal * (refraction_index_ratio * dot - c2))
+        Some(refraction_index_ratio * unit + (refraction_index_ratio * cosine - c2.sqrt()) * normal)
     } else {
         None
     }
@@ -103,4 +96,40 @@ fn schlick(cosine: f64, refraction_index: f64) -> f64 {
     let r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
     let r0 = r0 * r0;
     r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::math::Vector3;
+    use std::f64::consts::PI;
+    use assert_approx_eq::assert_approx_eq;
+
+    #[test]
+    fn refract_45_degree_angle() {
+        let normal = Vector3::new(0.0, 1.0, 0.0);
+        let incident = Vector3::new(2.0, -2.0, 0.0);
+
+        // The dot product of the vector and the normal should be the cosine of
+        // the angle between that vector and the normal. This is a sanity check
+        // for 45deg (normal negated because the incident vector points away from
+        // it, otherwise it'd be 135deg)
+        let incident_angle = incident.unit().dot(-normal).acos();
+        assert_approx_eq!(incident_angle, PI / 4.0);
+
+        let refractive_index = 1.5;
+
+        let refracted_vector = refract(incident, normal, refractive_index).unwrap();
+        let refracted_angle = refracted_vector.unit().dot(-normal).acos();
+
+        // When entering a medium with higher refractive index, the angle should
+        // be reduced with respect to the normal
+        println!("Refracted vector: {:#?}", refracted_vector);
+        println!("Refracted: {}, Incident: {}", refracted_angle, incident_angle);
+        assert!(refracted_angle < incident_angle);
+
+        // According to https://www.omnicalculator.com/physics/snells-law, the refracted
+        // angle should be ~0.490883rad
+        assert_approx_eq!(refracted_angle, 0.490883);
+    }
 }

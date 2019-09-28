@@ -11,7 +11,7 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn write_sphere() -> Result<(), std::io::Error> {
-    let path = Path::new("out/sphere_camera.ppm");
+    let path = Path::new("out/sphere_dielectric_improvement.ppm");
     let mut file = File::create(path)?;
 
     let width = 500;
