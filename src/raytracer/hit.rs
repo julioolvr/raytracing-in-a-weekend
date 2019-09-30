@@ -18,7 +18,7 @@ pub trait Hitable {
     fn check_hit(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<Hit>;
 }
 
-impl Hitable for Vec<Box<dyn Hitable>> {
+impl Hitable for Vec<Box<dyn Hitable + Sync>> {
     fn check_hit(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         let mut closest_hit: Option<Hit> = None;
 

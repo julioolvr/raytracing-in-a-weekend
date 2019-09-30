@@ -4,11 +4,11 @@ use crate::raytracer::{Ray, Hit, Hitable, Material};
 pub struct Sphere {
     center: Vector3,
     radius: f64,
-    material: Box<dyn Material>,
+    material: Box<dyn Material + Sync>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f64, material: Box<dyn Material>) -> Sphere {
+    pub fn new(center: Vector3, radius: f64, material: Box<dyn Material + Sync>) -> Sphere {
         Sphere { center, radius, material }
     }
 }
